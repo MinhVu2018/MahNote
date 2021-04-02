@@ -2,19 +2,17 @@ package com.example.mahnote;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.core.view.MenuItemCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -23,49 +21,55 @@ import java.util.ArrayList;
 import jp.wasabeef.richeditor.RichEditor;
 
 public class MainActivity extends AppCompatActivity {
-    LinearLayout note01,note02,note03,note04,note05,note06;
-    ImageButton btn_search;
-    RichEditor mEditor;
+    LinearLayout note01, note02;
     LinearLayout left_layout, right_layout;
-    ListView listview;
-    ArrayList<Note> array;
-    NoteArrayAdapter noteArray;
-
+    ListView list_note_view;
+    ArrayList<Note> note_array;
+    NoteArrayAdapter note_array_adapter;
+    FloatingActionButton fab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-//        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-//        ActionBar actionBar = getSupportActionBar();
-//        actionBar.hide();
         setContentView(R.layout.activity_main);
 
         left_layout = findViewById(R.id.left_layout);
         right_layout = findViewById(R.id.right_layout);
-//        listview = findViewById(R.id.listview);
+        list_note_view = findViewById(R.id.listview);
+        fab = findViewById(R.id.fab);
 
-
-        array = new ArrayList<Note>();
-        array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021"));
-        array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021"));
-        array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021"));
-
-        noteArray = new NoteArrayAdapter(MainActivity.this, R.layout.activity_note, array);
-//        listview.setAdapter(noteArray);
-
-
+        note_array = new ArrayList<Note>();
+        note_array_adapter = new NoteArrayAdapter(MainActivity.this, R.layout.activity_note, note_array);
 
         setUp();
     }
 
     private void setUp(){
-//        btn_search = findViewById(R.id.btn_search);
-//        btn_search.setOnClickListener(new View.OnClickListener(){
-//            @Override
-//            public void onClick(View v){
-//                Toast.makeText(MainActivity.this, "search", Toast.LENGTH_LONG).show();
-//            }
-//        });
+        note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "skincolor"));
+        note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
+        note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "pink"));
+        note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "purple"));
+        note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
+        note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "skincolor"));
+
+        list_note_view.setAdapter(note_array_adapter);
+
+        registerForContextMenu(list_note_view);
+
+        list_note_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Note selectedItem = (Note) parent.getItemAtPosition(position);
+
+                Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
+                new_intent.putExtra("note_name", selectedItem.note_title);
+                new_intent.putExtra("note_background", selectedItem.note_color);
+                new_intent.putExtra("note_date", selectedItem.note_date);
+                new_intent.putExtra("note_tag", selectedItem.note_tag);
+                startActivity(new_intent);
+            }
+        });
+
 
         note01 = findViewById(R.id.note_01);
         note01.setOnClickListener(new View.OnClickListener(){
@@ -74,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
                 Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
                 new_intent.putExtra("note_name", "note_01");
                 new_intent.putExtra("note_background", "skin");
-                new_intent.putExtra("note_content", (Parcelable) mEditor);
                 startActivity(new_intent);
             }
         });
@@ -88,63 +91,18 @@ public class MainActivity extends AppCompatActivity {
                 Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
                 new_intent.putExtra("note_name", "note_02");
                 new_intent.putExtra("note_background", "green");
-                new_intent.putExtra("note_content", (Parcelable) mEditor);
                 startActivity(new_intent);
             }
         });
 
         registerForContextMenu(note02);
 
-        note03 = findViewById(R.id.note_03);
-        note03.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
-                new_intent.putExtra("note_name", "note_03");
-                new_intent.putExtra("note_background", "blue");
-                new_intent.putExtra("note_content", (Parcelable) mEditor);
-                startActivity(new_intent);
-            }
-        });
-
-        registerForContextMenu(note03);
-
-        note04 = findViewById(R.id.note_04);
-        note04.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
-                new_intent.putExtra("note_name", "note_04");
-                new_intent.putExtra("note_background", "pink");
-                new_intent.putExtra("note_content", (Parcelable) mEditor);
-                startActivity(new_intent);
-            }
-        });
-
-        registerForContextMenu(note04);
-
-        note05 = findViewById(R.id.note_05);
-        note05.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
-                new_intent.putExtra("note_name", "note_05");
-                new_intent.putExtra("note_background", "purple");
-                new_intent.putExtra("note_content", (Parcelable) mEditor);
-                startActivity(new_intent);
-            }
-        });
-
-        registerForContextMenu(note05);
-
-        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
                 new_intent.putExtra("note_name", "new note");
                 new_intent.putExtra("note_background", "blue");
-                new_intent.putExtra("note_content", (Parcelable) mEditor);
                 startActivity(new_intent);
             }
         });
@@ -190,5 +148,17 @@ public class MainActivity extends AppCompatActivity {
         });
 
         return super.onCreateOptionsMenu(menu);
+    }
+
+    public View getViewByPosition(int pos, ListView listView) {
+        final int firstListItemPosition = listView.getFirstVisiblePosition();
+        final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
+
+        if (pos < firstListItemPosition || pos > lastListItemPosition ) {
+            return listView.getAdapter().getView(pos, null, listView);
+        } else {
+            final int childIndex = pos - firstListItemPosition;
+            return listView.getChildAt(childIndex);
+        }
     }
 }

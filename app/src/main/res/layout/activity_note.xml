@@ -3,13 +3,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/note_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="10dp"
-    android:layout_marginBottom="10dp"
-    android:clickable="true"
-    android:background="@drawable/frame_skincolor"
+    android:descendantFocusability="blocksDescendants"
     tools:context=".Note">
 
     <TextView
@@ -17,6 +15,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Note_Title"
+        android:focusableInTouchMode="false"
+        android:clickable="false"
+        android:focusable="false"
         android:textSize="30sp"
         android:textColor="@color/black"/>
 
@@ -29,6 +30,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="# list\n# of \n# tag \n# ..."
+        android:focusableInTouchMode="false"
+        android:clickable="false"
+        android:focusable="false"
         android:lineSpacingExtra="5dp"
         android:textColor="#0555a6"
         android:textStyle="bold"/>
@@ -38,6 +42,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="30/03/2021"
+        android:focusableInTouchMode="false"
+        android:clickable="false"
+        android:focusable="false"
         android:textSize="15sp"
         android:gravity="right"
         android:layout_gravity="bottom|right" />
