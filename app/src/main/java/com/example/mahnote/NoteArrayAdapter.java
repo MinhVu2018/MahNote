@@ -44,7 +44,25 @@ public class NoteArrayAdapter extends ArrayAdapter<Note> {
         date.setText(arrayList.get(position).note_date);
 
         LinearLayout layout = (LinearLayout)convertView.findViewById(R.id.note_layout);
-        layout.setBackground(ContextCompat.getDrawable(context, R.drawable.frame_blue));
+        switch (arrayList.get(position).note_color){
+            case "skincolor":
+                layout.setBackground(ContextCompat.getDrawable(context, R.drawable.frame_skincolor));
+                break;
+            case "blue":
+                layout.setBackground(ContextCompat.getDrawable(context, R.drawable.frame_blue));
+                break;
+            case "green":
+                layout.setBackground(ContextCompat.getDrawable(context, R.drawable.frame_green));
+                break;
+            case "pink":
+                layout.setBackground(ContextCompat.getDrawable(context, R.drawable.frame_pink));
+                break;
+            case "purple":
+                layout.setBackground(ContextCompat.getDrawable(context, R.drawable.frame_purple));
+                break;
+            default:
+                break;
+        }
         layout.setPadding(15, 15, 15, 15);
         return convertView;
     }

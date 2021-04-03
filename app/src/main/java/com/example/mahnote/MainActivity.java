@@ -2,10 +2,14 @@ package com.example.mahnote;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -21,11 +25,11 @@ import java.util.ArrayList;
 import jp.wasabeef.richeditor.RichEditor;
 
 public class MainActivity extends AppCompatActivity {
-    LinearLayout note01, note02;
-    LinearLayout left_layout, right_layout;
-    ListView list_note_view;
-    ArrayList<Note> note_array;
-    NoteArrayAdapter note_array_adapter;
+    ListView left_list_note_view, right_list_note_view;
+    View clickSource, touchSource;
+    int offset = 0;
+    ArrayList<Note> left_note_array, right_note_array;
+    NoteArrayAdapter left_note_array_adapter, right_note_array_adapter;
     FloatingActionButton fab;
 
     @Override
@@ -33,30 +37,36 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        left_layout = findViewById(R.id.left_layout);
-        right_layout = findViewById(R.id.right_layout);
-        list_note_view = findViewById(R.id.listview);
+        left_list_note_view = findViewById(R.id.leftlistview);
+        right_list_note_view = findViewById(R.id.rightlistview);
         fab = findViewById(R.id.fab);
 
-        note_array = new ArrayList<Note>();
-        note_array_adapter = new NoteArrayAdapter(MainActivity.this, R.layout.activity_note, note_array);
+        left_note_array = new ArrayList<Note>();
+        right_note_array = new ArrayList<Note>();
+        left_note_array_adapter = new NoteArrayAdapter(MainActivity.this, R.layout.activity_note, left_note_array);
+        right_note_array_adapter = new NoteArrayAdapter(MainActivity.this, R.layout.activity_note, right_note_array);
 
         setUp();
     }
 
     private void setUp(){
-        note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "skincolor"));
-        note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
-        note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "pink"));
-        note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "purple"));
-        note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
-        note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "skincolor"));
+        left_note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "skincolor"));
+        left_note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
+        left_note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "pink"));
+        left_note_array.add(new Note("Note_04", new String[]{"b","t","e","x"}, "30/03/2021", "green"));
+        left_note_array.add(new Note("Note_05", new String[]{"b","t","e","x"}, "30/03/2021", "blue"));
+        right_note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "purple"));
+        right_note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
+        right_note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "skincolor"));
+        right_note_array.add(new Note("Note_04", new String[]{"q","w","e","r","d","e","f"}, "30/03/2021", "skincolor"));
 
-        list_note_view.setAdapter(note_array_adapter);
+        left_list_note_view.setAdapter(left_note_array_adapter);
+        right_list_note_view.setAdapter(right_note_array_adapter);
 
-        registerForContextMenu(list_note_view);
+        registerForContextMenu(left_list_note_view);
+        registerForContextMenu(right_list_note_view);
 
-        list_note_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        left_list_note_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Note selectedItem = (Note) parent.getItemAtPosition(position);
@@ -70,32 +80,109 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-        note01 = findViewById(R.id.note_01);
-        note01.setOnClickListener(new View.OnClickListener(){
+        left_list_note_view.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v){
+            public boolean onTouch(View v, MotionEvent event) {
+                if(touchSource == null)
+                    touchSource = v;
+
+                if(v == touchSource) {
+                    right_list_note_view.dispatchTouchEvent(event);
+                    if(event.getAction() == MotionEvent.ACTION_UP) {
+                        clickSource = v;
+                        touchSource = null;
+                    }
+                }
+
+                return false;
+            }
+        });
+
+        left_list_note_view.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if(view == clickSource)
+                    left_list_note_view.setSelectionFromTop(firstVisibleItem, view.getChildAt(0).getTop() + offset);
+            }
+
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+        });
+
+        Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                // Set listView's x, y coordinates in loc[0], loc[1]
+                int[] loc = new int[2];
+                left_list_note_view.getLocationInWindow(loc);
+
+                // Save listView's y and get listView2's coordinates
+                int firstY = loc[1];
+                right_list_note_view.getLocationInWindow(loc);
+
+                offset = firstY - loc[1];
+                //Log.v("Example", "offset: " + offset + " = " + firstY + " + " + loc[1]);
+            }
+        };
+
+        right_list_note_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Note selectedItem = (Note) parent.getItemAtPosition(position);
+
                 Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
-                new_intent.putExtra("note_name", "note_01");
-                new_intent.putExtra("note_background", "skin");
+                new_intent.putExtra("note_name", selectedItem.note_title);
+                new_intent.putExtra("note_background", selectedItem.note_color);
+                new_intent.putExtra("note_date", selectedItem.note_date);
+                new_intent.putExtra("note_tag", selectedItem.note_tag);
                 startActivity(new_intent);
             }
         });
 
-        registerForContextMenu(note01);
-
-        note02 = findViewById(R.id.note_02);
-        note02.setOnClickListener(new View.OnClickListener(){
+        right_list_note_view.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v){
-                Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
-                new_intent.putExtra("note_name", "note_02");
-                new_intent.putExtra("note_background", "green");
-                startActivity(new_intent);
+            public boolean onTouch(View v, MotionEvent event) {
+                if(touchSource == null)
+                    touchSource = v;
+
+                if(v == touchSource) {
+                    left_list_note_view.dispatchTouchEvent(event);
+                    if(event.getAction() == MotionEvent.ACTION_UP) {
+                        clickSource = v;
+                        touchSource = null;
+                    }
+                }
+
+                return false;
             }
         });
 
-        registerForContextMenu(note02);
+        right_list_note_view.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if(view == clickSource)
+                    right_list_note_view.setSelectionFromTop(firstVisibleItem, view.getChildAt(0).getTop() + offset);
+            }
+
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {}
+        });
+
+        Handler handler2 = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                // Set listView's x, y coordinates in loc[0], loc[1]
+                int[] loc = new int[2];
+                right_list_note_view.getLocationInWindow(loc);
+
+                // Save listView's y and get listView2's coordinates
+                int firstY = loc[1];
+                left_list_note_view.getLocationInWindow(loc);
+
+                offset = firstY - loc[1];
+                //Log.v("Example", "offset: " + offset + " = " + firstY + " + " + loc[1]);
+            }
+        };
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -148,17 +235,5 @@ public class MainActivity extends AppCompatActivity {
         });
 
         return super.onCreateOptionsMenu(menu);
-    }
-
-    public View getViewByPosition(int pos, ListView listView) {
-        final int firstListItemPosition = listView.getFirstVisiblePosition();
-        final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
-
-        if (pos < firstListItemPosition || pos > lastListItemPosition ) {
-            return listView.getAdapter().getView(pos, null, listView);
-        } else {
-            final int childIndex = pos - firstListItemPosition;
-            return listView.getChildAt(childIndex);
-        }
     }
 }
