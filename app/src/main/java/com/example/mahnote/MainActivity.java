@@ -4,14 +4,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -28,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     ListView left_list_note_view, right_list_note_view;
     View clickSource, touchSource;
     int offset = 0;
+    int left_height, right_height;
     ArrayList<Note> left_note_array, right_note_array;
     NoteArrayAdapter left_note_array_adapter, right_note_array_adapter;
     FloatingActionButton fab;
@@ -187,10 +192,14 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
-                new_intent.putExtra("note_name", "new note");
-                new_intent.putExtra("note_background", "blue");
-                startActivity(new_intent);
+//                Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
+//                new_intent.putExtra("note_name", "new note");
+//                new_intent.putExtra("note_background", "blue");
+//                startActivity(new_intent);
+
+                left_height = getTotalHeightofListView(left_list_note_view);
+                right_height = getTotalHeightofListView(right_list_note_view);
+                Toast.makeText(MainActivity.this, Integer.toString(left_height) + ", " + Integer.toString(right_height) , Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -235,5 +244,27 @@ public class MainActivity extends AppCompatActivity {
         });
 
         return super.onCreateOptionsMenu(menu);
+    }
+
+    public static int getTotalHeightofListView(ListView listView) {
+
+        ListAdapter mAdapter = listView.getAdapter();
+
+        int totalHeight = 0;
+
+        for (int i = 0; i < mAdapter.getCount(); i++) {
+            View mView = mAdapter.getView(i, null, listView);
+
+            mView.measure(
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+            totalHeight += mView.getMeasuredHeight();
+            Log.w("HEIGHT" + i, String.valueOf(totalHeight));
+
+        }
+
+        return totalHeight;
     }
 }

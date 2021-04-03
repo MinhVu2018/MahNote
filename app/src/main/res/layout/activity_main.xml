@@ -52,7 +52,8 @@
         android:layout_gravity="end|bottom"
         android:src="@drawable/icon_add"
         android:contentDescription="add"
-        android:layout_margin="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="45dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 

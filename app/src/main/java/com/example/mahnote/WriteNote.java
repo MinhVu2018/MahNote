@@ -43,10 +43,9 @@ public class WriteNote extends AppCompatActivity {
         Bundle parameters = getIntent().getExtras();
         NoteTitle.setText(parameters.getCharSequence("note_name"));
         String color = (String) parameters.getCharSequence("note_background");
-        mEditor = parameters.getParcelable("note_content");
 
         switch (color){
-            case "skin":
+            case "skincolor":
                 screen.setBackgroundColor(getResources().getColor(R.color.bg_skincolor));
                 break;
             case "blue":
@@ -62,6 +61,7 @@ public class WriteNote extends AppCompatActivity {
                 screen.setBackgroundColor(getResources().getColor(R.color.bg_purple));
                 break;
             default:
+                screen.setBackgroundColor(getResources().getColor(R.color.bg_blue));
                 break;
         }
 
@@ -75,7 +75,6 @@ public class WriteNote extends AppCompatActivity {
             public void onClick(View v){
                 Toast.makeText(WriteNote.this, "Saved", Toast.LENGTH_SHORT).show();
                 Intent new_intent = new Intent(WriteNote.this, MainActivity.class);
-                new_intent.putExtra("note_content", (Parcelable) mEditor);
                 startActivity(new_intent);
             }
         });
