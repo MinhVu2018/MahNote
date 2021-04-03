@@ -1,6 +1,7 @@
 package com.example.mahnote;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -23,18 +24,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 import jp.wasabeef.richeditor.RichEditor;
 
 public class MainActivity extends AppCompatActivity {
-    ListView left_list_note_view, right_list_note_view;
+    ListView left_list_note_view, right_list_note_view, selected_list_view;
     View clickSource, touchSource;
     int offset = 0;
     int left_height, right_height;
     ArrayList<Note> left_note_array, right_note_array;
-    NoteArrayAdapter left_note_array_adapter, right_note_array_adapter;
+    NoteArrayAdapter left_note_array_adapter, right_note_array_adapter, selected_array_adapter;
     FloatingActionButton fab;
 
     @Override
@@ -46,8 +50,9 @@ public class MainActivity extends AppCompatActivity {
         right_list_note_view = findViewById(R.id.rightlistview);
         fab = findViewById(R.id.fab);
 
-        left_note_array = new ArrayList<Note>();
-        right_note_array = new ArrayList<Note>();
+        loadData();
+//        left_note_array = new ArrayList<Note>();
+//        right_note_array = new ArrayList<Note>();
         left_note_array_adapter = new NoteArrayAdapter(MainActivity.this, R.layout.activity_note, left_note_array);
         right_note_array_adapter = new NoteArrayAdapter(MainActivity.this, R.layout.activity_note, right_note_array);
 
@@ -55,15 +60,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setUp(){
-        left_note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "skincolor"));
-        left_note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
-        left_note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "pink"));
-        left_note_array.add(new Note("Note_04", new String[]{"b","t","e","x"}, "30/03/2021", "green"));
-        left_note_array.add(new Note("Note_05", new String[]{"b","t","e","x"}, "30/03/2021", "blue"));
-        right_note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "purple"));
-        right_note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
-        right_note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "skincolor"));
-        right_note_array.add(new Note("Note_04", new String[]{"q","w","e","r","d","e","f"}, "30/03/2021", "skincolor"));
+//        left_note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "skincolor"));
+//        left_note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
+//        left_note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "pink"));
+//        left_note_array.add(new Note("Note_04", new String[]{"b","t","e","x"}, "30/03/2021", "green"));
+//        left_note_array.add(new Note("Note_05", new String[]{"b","t","e","x"}, "30/03/2021", "blue"));
+//        right_note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "purple"));
+//        right_note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
+//        right_note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "skincolor"));
+//        right_note_array.add(new Note("Note_04", new String[]{"q","w","e","r","d","e","f"}, "30/03/2021", "skincolor"));
 
         left_list_note_view.setAdapter(left_note_array_adapter);
         right_list_note_view.setAdapter(right_note_array_adapter);
@@ -192,14 +197,9 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
-//                new_intent.putExtra("note_name", "new note");
-//                new_intent.putExtra("note_background", "blue");
-//                startActivity(new_intent);
 
-                left_height = getTotalHeightofListView(left_list_note_view);
-                right_height = getTotalHeightofListView(right_list_note_view);
-                Toast.makeText(MainActivity.this, Integer.toString(left_height) + ", " + Integer.toString(right_height) , Toast.LENGTH_SHORT).show();
+                Note a = new Note("new_note", new String[]{"q","w","e","r","d","e","f"}, "30/03/2021", "skincolor");
+                newNote(a);
             }
         });
     }
@@ -208,12 +208,21 @@ public class MainActivity extends AppCompatActivity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo){
         super.onCreateContextMenu(menu, v, menuInfo);
         getMenuInflater().inflate(R.menu.note_option, menu);
+
+        try {
+            selected_list_view = (ListView) v;
+            selected_array_adapter = (NoteArrayAdapter)selected_list_view.getAdapter();
+        } catch(ClassCastException e) {
+        }
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item){
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()){
             case R.id.option_remove:
+                selected_array_adapter.remove(selected_array_adapter.getItem(info.position));
+                selected_array_adapter.notifyDataSetChanged();
                 Toast.makeText(this, "Removed", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.option_01:
@@ -266,5 +275,48 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return totalHeight;
+    }
+
+    private void saveData(){
+        SharedPreferences shared = getSharedPreferences("SHARED_PREFS", MODE_PRIVATE);
+        SharedPreferences.Editor editor = shared.edit();
+
+        Gson gson = new Gson();
+
+        editor.putString("left_array", gson.toJson(left_note_array));
+        editor.putString("right_array", gson.toJson(right_note_array));
+        editor.apply();
+    }
+
+    private void loadData(){
+        SharedPreferences shared = getSharedPreferences("SHARED_PREFS", MODE_PRIVATE);
+
+        Gson gson = new Gson();
+        String json_left = shared.getString("left_array", null);
+        String json_right = shared.getString("right_array", null);
+
+        Type type = new TypeToken<ArrayList<Note>>(){}.getType();
+        left_note_array = gson.fromJson(json_left, type);
+        if (left_list_note_view == null)
+            left_note_array = new ArrayList<Note>();
+
+        right_note_array = gson.fromJson(json_right, type);
+        if (right_note_array == null)
+            right_note_array = new ArrayList<Note>();
+    }
+
+    private void newNote(Note a){
+        left_height = getTotalHeightofListView(left_list_note_view);
+        right_height = getTotalHeightofListView(right_list_note_view);
+        Toast.makeText(MainActivity.this, Integer.toString(left_height) + ", " + Integer.toString(right_height) , Toast.LENGTH_SHORT).show();
+        if (left_height > right_height) {
+            right_note_array.add(a);
+            right_note_array_adapter.notifyDataSetChanged();
+        }
+        else{
+            left_note_array.add(a);
+            left_note_array_adapter.notifyDataSetChanged();
+        }
+
     }
 }
