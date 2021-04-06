@@ -11,7 +11,7 @@
     <LinearLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="100dp"
         android:orientation="horizontal"
         android:layout_margin="20dp"
         app:layout_constraintTop_toTopOf="parent"
@@ -31,19 +31,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <TextView
+            <EditText
                 android:id="@+id/note_name"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="Note Title"
-                android:textSize="28sp"
+                android:textSize="30sp"
                 android:textStyle="bold"/>
             <TextView
+                android:id="@+id/note_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Last modified: 30/03/2021"
                 android:layout_gravity="right"
-                android:textSize="10sp"/>
+                android:textSize="20sp"/>
         </LinearLayout>
 
         <Space
@@ -51,23 +52,37 @@
             android:layout_height="wrap_content"
             android:layout_weight="1" />
 
-        <ImageButton
-            android:id="@+id/btn_save"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginTop="10dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/icon_save"
-            android:background="@null"/>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <ImageButton
+                android:id="@+id/btn_save"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="10dp"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/icon_save"
+                android:background="@null"/>
+            <ImageButton
+                android:id="@+id/btn_color"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="10dp"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/icon_choose_color"
+                android:background="@null"/>
+        </LinearLayout>
 
     </LinearLayout>
 
     <EditText
+        android:id="@+id/note_tag"
         android:layout_width="wrap_content"
-        android:layout_height="35dp"
+        android:layout_height="50dp"
         android:layout_marginLeft="20dp"
         android:text="#day1"
-        android:textSize="10sp"
+        android:textSize="18sp"
         android:textColor="#0555a6"
         app:layout_constraintBottom_toTopOf="@+id/note"
         app:layout_constraintLeft_toLeftOf="parent"/>
@@ -77,7 +92,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="120dp"
+        android:layout_marginTop="180dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginBottom="10dp"

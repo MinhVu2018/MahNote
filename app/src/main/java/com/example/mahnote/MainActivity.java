@@ -11,11 +11,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -27,6 +24,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 
@@ -37,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     View clickSource, touchSource;
     int offset = 0;
     int left_height, right_height;
+    ArrayList<String> left_note_name, right_note_name;
     ArrayList<Note> left_note_array, right_note_array;
     NoteArrayAdapter left_note_array_adapter, right_note_array_adapter, selected_array_adapter;
     FloatingActionButton fab;
@@ -50,9 +49,9 @@ public class MainActivity extends AppCompatActivity {
         right_list_note_view = findViewById(R.id.rightlistview);
         fab = findViewById(R.id.fab);
 
+        left_note_array = new ArrayList<Note>();
+        right_note_array = new ArrayList<Note>();
         loadData();
-//        left_note_array = new ArrayList<Note>();
-//        right_note_array = new ArrayList<Note>();
         left_note_array_adapter = new NoteArrayAdapter(MainActivity.this, R.layout.activity_note, left_note_array);
         right_note_array_adapter = new NoteArrayAdapter(MainActivity.this, R.layout.activity_note, right_note_array);
 
@@ -60,16 +59,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setUp(){
-//        left_note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "skincolor"));
-//        left_note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
-//        left_note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "pink"));
-//        left_note_array.add(new Note("Note_04", new String[]{"b","t","e","x"}, "30/03/2021", "green"));
-//        left_note_array.add(new Note("Note_05", new String[]{"b","t","e","x"}, "30/03/2021", "blue"));
-//        right_note_array.add(new Note("Note_01", new String[]{"a","b","c"}, "30/03/2021", "purple"));
-//        right_note_array.add(new Note("Note_02", new String[]{"d","e","f"}, "30/03/2021", "blue"));
-//        right_note_array.add(new Note("Note_03", new String[]{"q","w","e","r"}, "30/03/2021", "skincolor"));
-//        right_note_array.add(new Note("Note_04", new String[]{"q","w","e","r","d","e","f"}, "30/03/2021", "skincolor"));
-
         left_list_note_view.setAdapter(left_note_array_adapter);
         right_list_note_view.setAdapter(right_note_array_adapter);
 
@@ -82,10 +71,7 @@ public class MainActivity extends AppCompatActivity {
                 Note selectedItem = (Note) parent.getItemAtPosition(position);
 
                 Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
-                new_intent.putExtra("note_name", selectedItem.note_title);
-                new_intent.putExtra("note_background", selectedItem.note_color);
-                new_intent.putExtra("note_date", selectedItem.note_date);
-                new_intent.putExtra("note_tag", selectedItem.note_tag);
+                new_intent.putExtra("note", selectedItem.note_title);
                 startActivity(new_intent);
             }
         });
@@ -112,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 if(view == clickSource)
-                    left_list_note_view.setSelectionFromTop(firstVisibleItem, view.getChildAt(0).getTop() + offset);
+                    if (view.getChildAt(0) != null)
+                        left_list_note_view.setSelectionFromTop(firstVisibleItem, view.getChildAt(0).getTop() + offset);
             }
 
             @Override
@@ -141,10 +128,7 @@ public class MainActivity extends AppCompatActivity {
                 Note selectedItem = (Note) parent.getItemAtPosition(position);
 
                 Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
-                new_intent.putExtra("note_name", selectedItem.note_title);
-                new_intent.putExtra("note_background", selectedItem.note_color);
-                new_intent.putExtra("note_date", selectedItem.note_date);
-                new_intent.putExtra("note_tag", selectedItem.note_tag);
+                new_intent.putExtra("note", selectedItem.note_title);
                 startActivity(new_intent);
             }
         });
@@ -171,7 +155,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 if(view == clickSource)
-                    right_list_note_view.setSelectionFromTop(firstVisibleItem, view.getChildAt(0).getTop() + offset);
+                    if (view.getChildAt(0) != null)
+                        right_list_note_view.setSelectionFromTop(firstVisibleItem, view.getChildAt(0).getTop() + offset);
             }
 
             @Override
@@ -197,11 +182,30 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                Note a = new Note("new_note", new String[]{"q","w","e","r","d","e","f"}, "30/03/2021", "skincolor");
-                newNote(a);
+                Intent new_intent = new Intent(MainActivity.this, WriteNote.class);
+                startActivity(new_intent);
             }
         });
+
+        Bundle extras = getIntent().getExtras();
+
+        if (extras != null) {
+            SharedPreferences shared = getSharedPreferences("SHARED_PREFS", MODE_PRIVATE);
+            SharedPreferences.Editor editor = shared.edit();
+            Gson gson = new Gson();
+
+            String temp_note = shared.getString(extras.getString("New"), null);
+            Type type = new TypeToken<Note>(){}.getType();
+            Note temp = gson.fromJson(temp_note, type);
+
+            String name_place = extras.getString("Replace");
+            if (name_place != null)
+                replaceNote(name_place, temp.note_title);
+            else if (temp != null && !checkExist(temp.note_title))
+                newNote(temp);
+
+            saveData();
+        }
     }
 
     @Override
@@ -221,8 +225,10 @@ public class MainActivity extends AppCompatActivity {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()){
             case R.id.option_remove:
-                selected_array_adapter.remove(selected_array_adapter.getItem(info.position));
-                selected_array_adapter.notifyDataSetChanged();
+                String name = selected_array_adapter.getItem(info.position).note_title;
+                deleteNote(name);
+                saveData();
+
                 Toast.makeText(this, "Removed", Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.option_01:
@@ -248,6 +254,23 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                ArrayList<Note> result = new ArrayList<Note>();
+                for(Note x : left_note_array){
+                    if (!result.contains(x) && (x.note_tag.contains(newText) || x.contents.contains(newText)))
+                        result.add(x);
+                }
+                for(Note x : right_note_array){
+                    if (!result.contains(x) && (x.note_tag.contains(newText) || x.contents.contains(newText)))
+                        result.add(x);
+                }
+                if (result.size() == 0)
+                    return false;
+                ArrayList<Note> right_result = new ArrayList<Note>(result.subList(0,result.size()/2));
+                ArrayList<Note> left_result = new ArrayList<Note> (result.subList(result.size()/2, result.size()));
+
+                left_note_array_adapter.update(left_result);
+                right_note_array_adapter.update(right_result);
+
                 return false;
             }
         });
@@ -256,7 +279,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static int getTotalHeightofListView(ListView listView) {
-
         ListAdapter mAdapter = listView.getAdapter();
 
         int totalHeight = 0;
@@ -283,8 +305,9 @@ public class MainActivity extends AppCompatActivity {
 
         Gson gson = new Gson();
 
-        editor.putString("left_array", gson.toJson(left_note_array));
-        editor.putString("right_array", gson.toJson(right_note_array));
+        editor.putString("left_array", gson.toJson(left_note_name));
+        editor.putString("right_array", gson.toJson(right_note_name));
+
         editor.apply();
     }
 
@@ -295,28 +318,89 @@ public class MainActivity extends AppCompatActivity {
         String json_left = shared.getString("left_array", null);
         String json_right = shared.getString("right_array", null);
 
-        Type type = new TypeToken<ArrayList<Note>>(){}.getType();
-        left_note_array = gson.fromJson(json_left, type);
-        if (left_list_note_view == null)
-            left_note_array = new ArrayList<Note>();
+        Type type = new TypeToken<ArrayList<String>>(){}.getType();
+        left_note_name = gson.fromJson(json_left, type);
+        if (left_note_name == null)
+            left_note_name = new ArrayList<String>();
+        else{
+            for (int i=0; i<left_note_name.size(); i++){
+                String temp_name = shared.getString(left_note_name.get(i), null);
+                Note temp_note = gson.fromJson(temp_name, new TypeToken<Note>(){}.getType());
+                left_note_array.add(temp_note);
+            }
+        }
 
-        right_note_array = gson.fromJson(json_right, type);
-        if (right_note_array == null)
-            right_note_array = new ArrayList<Note>();
+        right_note_name = gson.fromJson(json_right, type);
+        if (right_note_name == null)
+            right_note_name = new ArrayList<String>();
+        else{
+            for (int i=0; i<right_note_name.size(); i++){
+                String temp_name = shared.getString(right_note_name.get(i), null);
+                Note temp_note = gson.fromJson(temp_name, new TypeToken<Note>(){}.getType());
+                right_note_array.add(temp_note);
+            }
+        }
     }
 
     private void newNote(Note a){
         left_height = getTotalHeightofListView(left_list_note_view);
         right_height = getTotalHeightofListView(right_list_note_view);
-        Toast.makeText(MainActivity.this, Integer.toString(left_height) + ", " + Integer.toString(right_height) , Toast.LENGTH_SHORT).show();
+//        Toast.makeText(MainActivity.this, Integer.toString(left_height) + ", " + Integer.toString(right_height) , Toast.LENGTH_SHORT).show();
         if (left_height > right_height) {
+            right_note_name.add(a.note_title);
             right_note_array.add(a);
             right_note_array_adapter.notifyDataSetChanged();
         }
         else{
+            left_note_name.add(a.note_title);
             left_note_array.add(a);
             left_note_array_adapter.notifyDataSetChanged();
         }
+    }
 
+    private void replaceNote(String old_name, String new_name)  {
+        for(int i=0; i<left_note_name.size(); i++)
+            if (old_name.equals(left_note_name.get(i))) {
+                left_note_name.set(i, new_name);
+                left_note_array_adapter.notifyDataSetChanged();
+                return;
+            }
+
+        for (int i=0; i<right_note_name.size(); i++)
+            if (old_name.equals(right_note_name.get(i))){
+                right_note_name.set(i, new_name);
+                right_note_array_adapter.notifyDataSetChanged();
+                return;
+            }
+    }
+
+    private void deleteNote(String name){
+        for(int i=0; i<left_note_name.size(); i++)
+            if (name.equals(left_note_name.get(i))){
+                left_note_name.remove(i);
+                left_note_array.remove(i);
+                left_note_array_adapter.notifyDataSetChanged();
+                break;
+            }
+        for(int i=0; i<right_note_name.size(); i++)
+            if (name.equals(right_note_name.get(i))){
+                right_note_name.remove(i);
+                right_note_array.remove(i);
+                right_note_array_adapter.notifyDataSetChanged();
+                break;
+            }
+        SharedPreferences shared = getSharedPreferences("SHARED_PREFS", MODE_PRIVATE);
+        SharedPreferences.Editor editor = shared.edit();
+        editor.remove(name).apply();  // remove Note
+    }
+
+    private boolean checkExist(String name){
+        for (String n:left_note_name)
+            if(name.equals(n))
+                return true;
+        for (String n:right_note_name)
+            if(name.equals(n))
+                return true;
+        return false;
     }
 }

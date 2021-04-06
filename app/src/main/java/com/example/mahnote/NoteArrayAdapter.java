@@ -16,11 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NoteArrayAdapter extends ArrayAdapter<Note> {
-
     Context context;
-    ArrayList<Note> arrayList;
+    ArrayList<Note> arrayList = new ArrayList<>();
     int layoutResource;
-
     public NoteArrayAdapter(@NonNull Context context, int resource, @NonNull ArrayList<Note> objects) {
         super(context, resource, objects);
         this.context = context;
@@ -33,12 +31,11 @@ public class NoteArrayAdapter extends ArrayAdapter<Note> {
     public View getView(int position, View convertView, ViewGroup parent){
         LayoutInflater inflater = LayoutInflater.from(context);
         convertView = inflater.inflate(layoutResource, null);
-
         TextView title = (TextView)convertView.findViewById(R.id.note_title);
         title.setText(arrayList.get(position).note_title);
 
         TextView tag = (TextView)convertView.findViewById(R.id.note_tag);
-        tag.setText(arrayList.get(position).note_tag);
+        tag.setText(arrayList.get(position).display_tag);
 
         TextView date = (TextView)convertView.findViewById(R.id.note_date);
         date.setText(arrayList.get(position).note_date);
@@ -67,5 +64,14 @@ public class NoteArrayAdapter extends ArrayAdapter<Note> {
         return convertView;
     }
 
+    @Override
+    public int getCount() {
+        return arrayList.size();
+    }
 
+    public void update(ArrayList<Note> temp_list){
+        arrayList = new ArrayList<Note>();
+        arrayList.addAll(temp_list);
+        notifyDataSetChanged();
+    }
 }
