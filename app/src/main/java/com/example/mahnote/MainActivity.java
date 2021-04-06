@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
 
             String name_place = extras.getString("Replace");
             if (name_place != null)
-                replaceNote(name_place, temp.note_title);
+                replaceNote(name_place, temp);
             else if (temp != null && !checkExist(temp.note_title))
                 newNote(temp);
 
@@ -266,10 +266,11 @@ public class MainActivity extends AppCompatActivity {
                 if (result.size() == 0)
                     return false;
                 ArrayList<Note> right_result = new ArrayList<Note>(result.subList(0,result.size()/2));
-                ArrayList<Note> left_result = new ArrayList<Note> (result.subList(result.size()/2, result.size()));
+                ArrayList<Note> left_result = new ArrayList<Note>(result.subList(result.size()/2, result.size()));
 
                 left_note_array_adapter.update(left_result);
                 right_note_array_adapter.update(right_result);
+                setUp();
 
                 return false;
             }
@@ -293,7 +294,6 @@ public class MainActivity extends AppCompatActivity {
 
             totalHeight += mView.getMeasuredHeight();
             Log.w("HEIGHT" + i, String.valueOf(totalHeight));
-
         }
 
         return totalHeight;
@@ -358,10 +358,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void replaceNote(String old_name, String new_name)  {
+    private void replaceNote(String old_name, Note curNote)  {
+        String new_name = curNote.note_title;
         for(int i=0; i<left_note_name.size(); i++)
             if (old_name.equals(left_note_name.get(i))) {
                 left_note_name.set(i, new_name);
+                left_note_array.set(i, curNote);
                 left_note_array_adapter.notifyDataSetChanged();
                 return;
             }
@@ -369,6 +371,7 @@ public class MainActivity extends AppCompatActivity {
         for (int i=0; i<right_note_name.size(); i++)
             if (old_name.equals(right_note_name.get(i))){
                 right_note_name.set(i, new_name);
+                right_note_array.set(i, curNote);
                 right_note_array_adapter.notifyDataSetChanged();
                 return;
             }

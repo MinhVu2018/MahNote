@@ -70,7 +70,7 @@ public class NoteArrayAdapter extends ArrayAdapter<Note> {
     }
 
     public void update(ArrayList<Note> temp_list){
-        arrayList = new ArrayList<Note>();
+        arrayList.clear();
         arrayList.addAll(temp_list);
         notifyDataSetChanged();
     }
